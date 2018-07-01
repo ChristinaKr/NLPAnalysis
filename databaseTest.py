@@ -99,7 +99,7 @@ def distribution_funding_speed_histogram():
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()
     
-    cur.execute("SELECT DAYS_NEEDED FROM funded WHERE BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT < 1000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0")
+    cur.execute("SELECT DAYS_NEEDED FROM funded WHERE BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT > 4000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0")
     days = cur.fetchall()
     print("Number of entries: ", len(days))
     print("Maximum days: ", max(days))
@@ -123,8 +123,8 @@ def distribution_funding_gap_histogram():
     
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()
-    
-    cur.execute("SELECT GAP FROM notfunded WHERE LOAN_AMOUNT > 1500 AND SECTOR_NAME = 'Agriculture'")
+        
+    cur.execute("SELECT GAP FROM notfunded WHERE LOAN_AMOUNT > 4000 AND SECTOR_NAME = 'Agriculture'")
     days = cur.fetchall()
     print("Number of entries: ", len(days))
     print("Maximum gap: ", max(days))
@@ -368,7 +368,7 @@ def description_length_notfunded():
 
 
 def main():
-    
+    distribution_funding_gap_histogram()
     plt.show()
     
 if __name__ == "__main__": main()

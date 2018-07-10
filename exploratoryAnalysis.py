@@ -8,13 +8,12 @@ Created on Thu Jun 28 11:36:57 2018
 import sqlite3
 import matplotlib.pyplot as plt
 import numpy as np
-import collections
+#import collections
 import matplotlib as mpl
 from scipy.stats.stats import pearsonr
 from scipy.stats.stats import spearmanr
 from scipy.stats.stats import kendalltau
 from scipy import stats
-from scipy.stats import shapiro
 
 
 ### 1a
@@ -29,6 +28,8 @@ def distribution_funding_speed_histogram(days):
 ##    cur.execute("SELECT DAYS_NEEDED FROM funded WHERE BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT > 4000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0")
 #    cur.execute("SELECT DAYS_NEEDED FROM success")
 #    days = cur.fetchall()
+
+    
     print("Number of entries: ", len(days))
     print("Maximum days: ", max(days))
     print("Minimum days: ", min(days))
@@ -38,12 +39,36 @@ def distribution_funding_speed_histogram(days):
     # create a single axis on that figure
     ax = fig.add_subplot(1,1,1)
     # histogram the data and label the axes
-    ax.set_xlabel("Funding speed in days")
+    ax.set_xlabel("Log of Funding speed in days")
     ax.set_ylabel("Number of loans")
     fig.suptitle('Histogram of Funding Speed')
-    ax.hist(days, bins = 100, range = (0, 80))
+    ax.hist(days, bins = 100, range = (0, 10))
     plt.show()
 
+def distribution_funding_speed_4_histograms(days):
+    """
+    Distribution of funding speed
+    """
+    
+#    print("Number of entries: ", len(days))
+#    print("Maximum days: ", max(days))
+#    print("Minimum days: ", min(days))
+    
+    # create an empty figure object
+    fig = plt.figure()
+    # create a single axis on that figure
+#    ax = fig.add_subplot(1,1,1)
+    ax_11 = fig.add_subplot(1.5,2,1)
+    ax_12 = fig.add_subplot(1.5,2,2)
+    # histogram the data and label the axes
+    ax_11.set_xlabel("Funding speed in days")
+    ax_11.set_ylabel("Number of loans")
+    ax_12.set_xlabel("LOG funding speed")
+    fig.suptitle('Distribution of Funding Speed')
+    ax_11.hist(days, bins = 100, range = (0,80))
+    ax_12.hist(np.log(days), bins = 50, range = (0, 10))
+#    plt.tight_layout()
+    plt.show()
 
 #def line_plot_gap():
 #    fig = plt.figure()
@@ -73,12 +98,11 @@ def distribution_funding_gap_histogram(gap):
     # create a single axis on that figure
     ax = fig.add_subplot(1,1,1)
     # histogram the data and label the axes
-    ax.set_xlabel("Funding gap in US$")
+    ax.set_xlabel("Log of funding gap in US$")
     ax.set_ylabel("Number of loans")
-    fig.suptitle('Histogram of Funding Gap')
-    gap = [i[0] for i in gap]
+    fig.suptitle('Histogram of LOG Funding Gap')
 #    ax.hist(gap)
-    ax.hist(gap, bins = 100, range = (0, 2000))
+    ax.hist(gap, bins = 100, range = (0, 10))
     plt.show()
 
 
@@ -138,7 +162,7 @@ def distribution_loan_amount_gap_histogram():
     ax.set_ylabel("Number of loans")
     fig.suptitle('Histogram of Loan Amounts NOT FUNDED')
     loan_amount = [i[0] for i in loan_amounts]
-    ax.hist(loan_amount, bins = 100, range = (0, 5000))
+    ax.hist(loan_amount, bins = 50, range = (0, 5000))
     plt.show()
 
 
@@ -164,6 +188,30 @@ def distribution_loan_amount_plot():
 #    plt.scatter(x,y)
     ax.plot(x, y)
     plt.show()    
+
+def distribution_length_days_histogram(length):
+    """
+    Distribution of description length
+    """
+    
+    print("Number of entries from success table: ", len(length))
+    print("Maximum loan amount: ", max(length))
+    print("Minimum loan amount: ", min(length))
+    
+    # create an empty figure object
+    fig = plt.figure()
+    # create a single axis on that figure
+    ax = fig.add_subplot(1,1,1)
+    # histogram the data and label the axes
+    ax.set_xlabel("LOG Length")
+    ax.set_ylabel("Number of loans")
+    fig.suptitle('Distribution of LOG description length')
+    ax.hist(length, bins = 100, range = (0, 10))
+    plt.show()
+
+
+
+
 
 
 
@@ -239,18 +287,18 @@ def check():
     cur.execute("SELECT COUNT(*) FROM success WHERE DAYS_NEEDED > 250")
     print("Xount Days needed > 250: ", cur.fetchall())
 
-def correlations_speed(days, length):
-    x = days
-    y = length
+def correlations_speed(x, y):
+    #x = days
+    #y = length
     
     
     # Scatterplot
     mpl.style.use('ggplot')
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.set_xlabel("Days raised")
-    ax.set_ylabel("Length")
-    fig.suptitle('Correlation funding speed and description length')
+    ax.set_xlabel("LOG speed")
+    ax.set_ylabel("LOG length")
+    fig.suptitle('Correlation log funding speed and log description length')
     plt.scatter(x, y)
     plt.show()
 
@@ -266,24 +314,29 @@ def correlations_speed(days, length):
     k_corr_speed_length = kendalltau(x,y)
     print("Kendall: ", k_corr_speed_length)
     
-def normality_tests(days, length):
+def normality_tests(length):
+            
     # D’Agostino’s K^2 Test
-    k2, p = stats.normaltest(np.log(days))
+    stat, p = stats.normaltest(length)
     alpha = 0.05
-    print("p = %.3f"%(p))
+    print('Statistics=%.3f, p=%.10f' % (stat, p))
     if p < alpha:  # null hypothesis: x comes from a normal distribution
         print("The null hypothesis that the var. is normally distributed can be rejected")
     else:
         print("The null hypothesis cannot be rejected; data is normally distributed")
 
     # Shapiro-Wilk Test
-    stat, p = shapiro(np.log(days))
-    print('Statistics=%.3f, p=%.3f' % (stat, p))
+    statc, pv = stats.shapiro(length)
+    print('Statistics=%.3f, p=%.10f' % (statc, pv))
     alpha = 0.05
     if p > alpha:
         print('Sample looks Gaussian (fail to reject H0)')
     else:
         print('Sample does not look Gaussian (reject H0)')
+
+
+
+
 
 def main():
     con = sqlite3.connect('databaseTest.db')
@@ -291,48 +344,74 @@ def main():
         
 #    cur.execute("SELECT GAP FROM nosuccess WHERE LOAN_AMOUNT < 2000 AND SECTOR_NAME = 'Agriculture'")
 #    gap = cur.fetchall()
+#    gap = [i[0] for i in gap]
+#    gap_transformed, _ = stats.boxcox(gap)
+
     
 #    cur.execute("SELECT LOAN_AMOUNT FROM nosuccess")
 #    loan_amount_gap = cur.fetchall()
 #    cur.execute("SELECT LOAN_AMOUNT FROM success")
 #    loan_amount_days = cur.fetchall()
+    
+    
+    
+#    cur.execute("SELECT DAYS_NEEDED FROM success WHERE BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT < 1000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0")
+#    days = cur.fetchall()
+#    days = [i[0] for i in days]
+    
+#    for i in range(len(days)):
+#        if days[i] == 0:
+#            days[i] = 0.00000000000000000000000000000000000001    
 
-#    cur.execute("SELECT DAYS_NEEDED FROM success")
-    
-    
-    
-    cur.execute("SELECT DAYS_NEEDED FROM success WHERE BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT < 1000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0")
-    days = cur.fetchall()
-    days = [i[0] for i in days]
 
-    cur.execute("SELECT WORD_COUNT FROM success WHERE BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT < 1000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0")
-    word_count = cur.fetchall()
-    length = [i[0] for i in word_count]
+#    cur.execute("SELECT WORD_COUNT FROM success WHERE BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT < 1000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0")
+#    word_count = cur.fetchall()
+#    length_speed = [i[0] for i in word_count]
+##    length_transformed, _ = stats.boxcox(length)  
+#    cur.execute("SELECT WORD_COUNT FROM nosuccess WHERE LOAN_AMOUNT < 2000 AND SECTOR_NAME = 'Agriculture'")
+#    word_count = cur.fetchall()
+#    length_gap = [i[0] for i in word_count]
 
-#    correlations_speed(days, length)
-#    
-#    print("Distribution Funding Speed: ")
-#    distribution_funding_speed_histogram(days)
     
+#    correlations_speed(np.log(days), np.log(length_speed))
     
+#    print("Distribution Length: ")
+#    distribution_length_days_histogram(length_speed)
+#    print("Distribution Length LOG: ")
+#    distribution_length_days_histogram(np.log(length_speed))
+
     
 #    print("Distribution Funding Speed LOG: ")
 #    distribution_funding_speed_histogram(np.log(days))
+#    distribution_funding_speed_4_histograms(days)
+#    print("Distribution Funding Speed BOXCOX: ")
+#    days_transformed, _ = stats.boxcox(days)
+#    distribution_funding_speed_histogram(days_transformed)
+
 #    scatter_loan_amount_vs_days(days, loan_amount_days)
+#    scatter_loan_amount_vs_days(days, loan_amount_days)
+
     
     
 #    print("Distribution Funding Gap: ")
 #    distribution_funding_gap_histogram(gap)
+#    correlations_speed(gap, length_gap)
+#
 #    print("Distribution Funding Gap LOG: ")
 #    distribution_funding_gap_histogram(np.log(gap))
+#    correlations_speed(np.log(gap), np.log(length_gap))
+
+#    print("Distribution Funding Gap Boxcox: ")
+#    distribution_funding_gap_histogram(gap_transformed)
+#    correlations_speed(gap_transformed, length)
+
 #    scatter_loan_amount_vs_gap(gap, loan_amount_gap)
 #    plot_loan_amount_vs_gap(gap, loan_amount_gap)
     
 #    distribution_loan_amount_plot()
 #    distribution_loan_amount_days_histogram()
-#    distribution_loan_amount_gap_histogram()
-    
-    normality_tests(days, length)
+    distribution_loan_amount_gap_histogram()
+#    normality_tests(np.log(length_speed))
     
     
 if __name__ == "__main__": main()

@@ -9,7 +9,8 @@ import csv, sqlite3
 import matplotlib.pyplot as plt
 import numpy as np
 import datetime
-import re
+#import re
+import enchant
     
 
 def import_data():
@@ -365,11 +366,84 @@ def description_length_notfunded():
     cur.execute("CREATE TABLE nosuccess AS SELECT notfunded.*, countnotfunded.WORD_COUNT, countnotfunded.CHARACTER_COUNT FROM notfunded, countnotfunded WHERE notfunded.DESCRIPTION = countnotfunded.DESCRIPTION")
     con.commit()
 
+def check_English_descriptions():
+    index = []
+
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+    cur.execute("SELECT DESCRIPTION FROM nosuccess WHERE LOAN_AMOUNT > 2000 AND SECTOR_NAME = 'Agriculture' ")
+    descriptions = cur.fetchall()
+    description = [i[0] for i in descriptions]
+#    description = np.array(description)
+    cur.execute("SELECT DESCRIPTION_TRANSLATED FROM nosuccess WHERE LOAN_AMOUNT > 2000 AND SECTOR_NAME = 'Agriculture' ")
+    description_trans = cur.fetchall()
+    description_trans = [i[0] for i in description_trans]
+#    description_trans = np.array(description_trans)
+    
+    description_list = []
+
+    
+    for i in range(len(description)):
+        if description_trans[i] == '':
+            descr = description[i]
+        else:
+            descr = description_trans[i]
+        description_list.append(descr)
+    
+    print("len: ", len(description_list))
+    
+    d = enchant.Dict("en_US")
+    for i in range(len(description_list)):
+        print("i", i)
+        print(description_list[i])
+        d = description_list[i].split(' ')[2]
+        if not d:
+            d = description_list[i].split(' ')[3]
+        if d != True:
+            index.append(description_list.index(description_list[i]))
+    print(index)
+    
+def check_english():
+        
+    d = enchant.Dict("en_US")
+    string = "Hello this is English"
+    string2 = string.split(' ', 1)[0]
+    print(d.check(string2))
+    
+    print(string.split(' ')[3])
+
+def descriptions_less_words():
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+#    cur.execute("SELECT DESCRIPTION FROM success")
+#    descriptions = cur.fetchall()
+#    description = [i[0] for i in descriptions]
+#    index = []
+#    
+#    for i in range(len(description)):
+#        print(i)
+#        if len(description[i].split()) < 10:
+#            cur.execute("SELECT LOAN_ID FROM success WHERE DESCRIPTION = ?", [description[i]])
+#            d = cur.fetchall()
+#            d = [i[0] for i in d]
+#            print(d)
+#            index.append(d)
+#    print(type(index))
+#    print(index)
+    
+#    cur.execute("SELECT DESCRIPTION from nosuccess WHERE LOAN_ID IN (1088062, 1081925, 1087368, 1088140, 1087279, 1089034, 1084524, 1089212, 1084802)" )
+#    d= cur.fetchall()
+#    print(d)
+    
+    cur.execute("SELECT COUNT(*) FROM success WHERE EUROPE = 0 AND BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT > 1000 AND SECTOR_NAME = 'Agriculture'")
+    print("before: ", cur.fetchone())
 
 
 def main():
-    distribution_funding_gap_histogram()
-    plt.show()
+#    check_english()
+#    check_English_descriptions()
+    descriptions_less_words()
+    
     
 if __name__ == "__main__": main()
 

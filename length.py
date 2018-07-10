@@ -7,8 +7,8 @@ Created on Wed Jun 13 09:34:47 2018
 """
 
 import numpy as np
-import scipy.stats as stats
-import matplotlib.pyplot as plt
+#import scipy.stats as stats
+#import matplotlib.pyplot as plt
 import sklearn
 import sqlite3
 from sklearn.model_selection import train_test_split
@@ -76,7 +76,7 @@ def linear_regression_funding_speed():
 
 
 def main():
-    exploratory_analysis_speed()
+    linear_regression_funding_speed()
     
     
     

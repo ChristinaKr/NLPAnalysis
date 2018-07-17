@@ -17,11 +17,11 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/Users/christinakronser/Downloads/
 def sentiment_analysis():
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()
-    cur.execute("SELECT DESCRIPTION FROM success WHERE LOAN_AMOUNT > 1000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0 AND BORROWER_GENDERS NOT LIKE '%female%' ")
+    cur.execute("SELECT DESCRIPTION FROM success WHERE LOAN_AMOUNT < 1000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0 AND BORROWER_GENDERS NOT LIKE '%female%' ")
     descriptions = cur.fetchall()
     descriptions = [i[0] for i in descriptions]
     description = np.array(descriptions)
-    cur.execute("SELECT DESCRIPTION_TRANSLATED FROM success WHERE LOAN_AMOUNT > 1000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0 AND BORROWER_GENDERS NOT LIKE '%female%' ")
+    cur.execute("SELECT DESCRIPTION_TRANSLATED FROM success WHERE LOAN_AMOUNT < 1000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0 AND BORROWER_GENDERS NOT LIKE '%female%' ")
     description_trans = cur.fetchall()
     description_trans = [i[0] for i in description_trans]
     description_trans = np.array(description_trans)
@@ -83,8 +83,8 @@ def sentiment_analysis():
     for d, ss, m, sens, senm in zip(description_list, sentimentscore_list, magnitude_list, sentences_score_list, sentences_magnitude_list):
         insert(d, ss, m, sens, senm)
     
-    cur.execute("DROP TABLE IF EXISTS data12")
-    cur.execute("CREATE TABLE data12 AS SELECT success.*, temp.SENTIMENTSCORE, temp.MAGNITUDE, temp.SENTENCESCORES, temp.SENTENCEMAGNITUDES FROM success, temp WHERE temp.DESCRIPTIONS IN (success.DESCRIPTION, success.DESCRIPTION_TRANSLATED)")
+    cur.execute("DROP TABLE IF EXISTS data11")
+    cur.execute("CREATE TABLE data11 AS SELECT success.*, temp.SENTIMENTSCORE, temp.MAGNITUDE, temp.SENTENCESCORES, temp.SENTENCEMAGNITUDES FROM success, temp WHERE temp.DESCRIPTIONS IN (success.DESCRIPTION, success.DESCRIPTION_TRANSLATED)")
     con.commit()
 
 
@@ -96,9 +96,9 @@ def distribution_sentimentscore_histogram(x, label):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.set_xlabel("Sentiment Score")
-    ax.set_ylabel("Number of loans")
+    ax.set_ylabel("Number of Sentences")
     fig.suptitle(label)
-    ax.hist(x, bins = 20)
+    ax.hist(x)
     plt.show()
 
 def distribution_magnitude_histogram(x, label):
@@ -109,9 +109,9 @@ def distribution_magnitude_histogram(x, label):
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
     ax.set_xlabel("Sentiment Magnitude")
-    ax.set_ylabel("Number of loans")
+    ax.set_ylabel("Number of Sentences")
     fig.suptitle(label)
-    ax.hist(x, bins = 20)
+    ax.hist(x)
     plt.show()
 
 def scatter_linearity(x, x_label, y, y_label, name):
@@ -161,8 +161,6 @@ def linear_regression():
     
     X = np.concatenate((x1,x2,x3), axis = 1)
     print("X shape: ", X.shape)
-    print("x2[3]", x2[3][0])
-    print("X[3][1]", X[3][1])
         
     regressor = LinearRegression()
     regressor.fit(X, y)
@@ -183,11 +181,11 @@ def linear_regression():
 
 
 def main():
-#    con = sqlite3.connect('databaseTest.db')
-#    cur = con.cursor()
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
         
-#    ##### Sentiment Score Data11 ###
-#    cur.execute("SELECT SENTIMENTSCORE FROM data11")
+    ##### Sentiment Score Data11 ###
+#    cur.execute("SELECT SENTIMENTSCORE FROM dataset11")
 #    sentimentScore = cur.fetchall()
 #    sentimentScore = np.array([i[0] for i in sentimentScore])
 #    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 11")
@@ -195,10 +193,10 @@ def main():
 #    days = cur.fetchall()
 #    days = np.array([i[0] for i in days])
 #    scatter_linearity(sentimentScore, "Sentiment Score", days, "Funding speed", "Plot of funding speed and sentiment score - set 11")
-
-
+#
+#
 #    # Sentiment Magnitude
-#    cur.execute("SELECT MAGNITUDE FROM data11")
+#    cur.execute("SELECT MAGNITUDE FROM dataset11")
 #    magnitude = cur.fetchall()
 #    magnitude = np.array([i[0] for i in magnitude])
 #    distribution_magnitude_histogram(magnitude, "Distribution Sentiment Magnitude Set 11")
@@ -208,10 +206,10 @@ def main():
 #    scatter_linearity(magnitude, "Sentiment magnitude", days, "Funding speed", "Plot of funding speed and sentiment magnitude - set 11")
 
 #    ##### Sentiment Score Data12 ###
-#    cur.execute("SELECT SENTIMENTSCORE FROM data12")
+#    cur.execute("SELECT SENTIMENTSCORE FROM dataset12")
 #    sentimentScore = cur.fetchall()
 #    sentimentScore = np.array([i[0] for i in sentimentScore])
-##    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 12")
+#    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 12")
 #    cur.execute("SELECT DAYS_NEEDED FROM data12")
 #    days = cur.fetchall()
 #    days = np.array([i[0] for i in days])
@@ -227,11 +225,11 @@ def main():
 #    days = np.array([i[0] for i in days])
 #    scatter_linearity(magnitude, "Sentiment magnitude", days, "Funding speed", "Plot of funding speed and sentiment magnitude - set 12")
 #
-#    ##### Sentiment Score Data21 ###
-#    cur.execute("SELECT SENTIMENTSCORE FROM data21")
-#    sentimentScore = cur.fetchall()
-#    sentimentScore = np.array([i[0] for i in sentimentScore])
-##    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 21")
+    ##### Sentiment Score Data21 ###
+    cur.execute("SELECT SENTIMENTSCORE FROM dataset21")
+    sentimentScore = cur.fetchall()
+    sentimentScore = np.array([i[0] for i in sentimentScore])
+    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 21")
 #    cur.execute("SELECT GAP FROM data21")
 #    gap = cur.fetchall()
 #    gap = np.array([i[0] for i in gap])
@@ -247,16 +245,39 @@ def main():
 #    gap = np.array([i[0] for i in gap])
 #    scatter_linearity(magnitude, "Sentiment magnitude", gap, "Funding gap", "Plot of funding gap and sentiment magnitude - set 21")
 #
-#    ##### Sentiment Score Data22 ###
-#    cur.execute("SELECT SENTIMENTSCORE FROM data22")
+
+    ##### Sentiment Score Data22 ###
+#    cur.execute("SELECT NORM_SCORE FROM dataset22")
 #    sentimentScore = cur.fetchall()
 #    sentimentScore = np.array([i[0] for i in sentimentScore])
-##    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 22")
-#    cur.execute("SELECT GAP FROM data22")
+#    distribution_sentimentscore_histogram(sentimentScore, "Distribution Normalised Sentiment Score Set 22")
+#    cur.execute("SELECT GAP FROM dataset22")
 #    gap = cur.fetchall()
 #    gap = np.array([i[0] for i in gap])
-#    scatter_linearity(sentimentScore, "Sentiment Score", gap, "Funding gap", "Plot of funding gap and sentiment score - set 22")
-#
+#    scatter_linearity(sentimentScore, "Normalised Sentiment Score", gap, "Funding gap", "Plot of funding gap and normalised sentiment score - set 22")
+    
+#    cur.execute("SELECT SENTENCESCORES FROM dataset21")
+#    sentimentScore = cur.fetchall()
+#    sentimentScore = np.array([i[0] for i in sentimentScore])
+#    sentences_score_list = []
+#    for i in range(len(sentimentScore)):
+#        sentence_score = eval(sentimentScore[i])
+#        sentences_score_list.append(sentence_score)
+#    sentimentScore = [item for sublist in sentences_score_list for item in sublist]
+#    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentence Sentiment Score Set 21")
+#   
+#    cur.execute("SELECT SENTENCEMAGNITUDES FROM dataset21")
+#    sentimentScore = cur.fetchall()
+#    sentimentScore = np.array([i[0] for i in sentimentScore])
+#    sentences_score_list = []
+#    for i in range(len(sentimentScore)):
+#        sentence_score = eval(sentimentScore[i])
+#        sentences_score_list.append(sentence_score)
+#    sentimentScore = [item for sublist in sentences_score_list for item in sublist]
+#    distribution_magnitude_histogram(sentimentScore, "Distribution Sentence Sentiment Magnitude Set 21")
+
+
+
 #
 #    # Sentiment Magnitude
 #    cur.execute("SELECT MAGNITUDE FROM data22")
@@ -270,8 +291,6 @@ def main():
     
     
 #    linear_regression()
-
-    sentiment_analysis() 
     
 
     

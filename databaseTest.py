@@ -11,6 +11,7 @@ import numpy as np
 import datetime
 #import re
 import enchant
+import random
     
 
 def import_data():
@@ -438,11 +439,99 @@ def descriptions_less_words():
     cur.execute("SELECT COUNT(*) FROM success WHERE EUROPE = 0 AND BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT > 1000 AND SECTOR_NAME = 'Agriculture'")
     print("before: ", cur.fetchone())
 
+def normalisation():
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+    
+    cur.execute("SELECT WORD_COUNT FROM set11")
+    words = cur.fetchall()
+    words = [i[0] for i in words]   # list of floats
+    cur.execute("SELECT LOAN_ID  FROM set11")
+    loan_id = cur.fetchall()
+    loan_id = [i[0] for i in loan_id]       # list of ints
+
+    average = np.average(words)
+    std = np.std(words)
+    print("average: ", average )
+    print("std: ", std)
+    
+    normalised_words_list = []
+    
+    for i in range(len(words)):   
+        print("i: ", i)
+        normalised = (words[i] - average)/std
+        normalised_words_list.append(normalised)
+        
+    cur.execute("DROP TABLE IF EXISTS temp")
+    cur.execute("CREATE TABLE temp(NORM_WORDS numeric, LOAN_ID integer)")
+    
+    def insert(norm_word, loan_ids):
+        cur.execute("INSERT INTO temp (NORM_WORDS, LOAN_ID) VALUES (?, ?)", (norm_words, loan_ids))
+    
+    for norm_words, loan_ids in zip(normalised_words_list, loan_id):
+        insert(norm_words, loan_ids)
+    
+    cur.execute("CREATE TABLE data11 AS SELECT set11.*, temp.NORM_WORDS FROM set11, temp WHERE set11.LOAN_ID = temp.LOAN_ID")
+    con.commit()
+
+
+def normalisation2():
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+    
+    cur.execute("SELECT SENTIMENTSCORE FROM data11")
+    score = cur.fetchall()
+    score = [i[0] for i in score]   # list of floats
+    cur.execute("SELECT LOAN_ID  FROM data11")
+    loan_id = cur.fetchall()
+    loan_id = [i[0] for i in loan_id]       # list of ints
+
+    average = np.average(score)
+    std = np.std(score)
+    print("average: ", average )
+    print("std: ", std)
+    
+    #on sentence level!!!!
+    cur.execute("SELECT SENTENCESCORES  FROM data11")
+    sentence_scores = cur.fetchall()
+    sentence_scores = [i[0] for i in sentence_scores]   # multiple list of strings
+
+    normalised_sen_scores_list = []
+    normalised_score_list = []
+    
+    for i in range(len(sentence_scores)):    #length: 3627
+        print("i: ", i)
+        normalised = (score[i] - average)/std
+        sentence_mag = eval(sentence_scores[i])   # simple list of floats
+#        print("sentence magnitude: ", sentence_mag)
+        sen_magnitudes = []
+#        print("length of inner loop: ", len(sentence_mag))
+        for i in range(len(sentence_mag)):
+            normalised_sen_mag = (sentence_mag[i] - average)/std
+            sen_magnitudes.append(normalised_sen_mag)
+#        print("normalised sentence magnitude: ", sen_magnitudes)
+        sentences_magnitude_string = repr(sen_magnitudes)
+        normalised_sen_scores_list.append(sentences_magnitude_string)
+        normalised_score_list.append(normalised)
+        
+    cur.execute("DROP TABLE IF EXISTS temp")
+    cur.execute("CREATE TABLE temp(NORM_SCORE numeric, NORM_SENTENCESCORES text, LOAN_ID integer)")
+    
+    def insert(norm_mag, norm_mag_sentences, loan_ids):
+        cur.execute("INSERT INTO temp (NORM_SCORE, NORM_SENTENCESCORES, LOAN_ID) VALUES (?, ?, ?)", (norm_mag, norm_mag_sentences, loan_ids))
+    
+    for norm_mag, norm_mag_sentences, loan_ids in zip(normalised_score_list, normalised_sen_scores_list, loan_id):
+        insert(norm_mag, norm_mag_sentences, loan_ids)
+    
+    cur.execute("CREATE TABLE dataset11 AS SELECT data11.*, temp.NORM_SCORE, temp.NORM_SENTENCESCORES FROM data11, temp WHERE data11.LOAN_ID = temp.LOAN_ID")
+    con.commit()
+
+
+
 
 def main():
-#    check_english()
-#    check_English_descriptions()
-    descriptions_less_words()
+    normalisation2()
+
     
     
 if __name__ == "__main__": main()

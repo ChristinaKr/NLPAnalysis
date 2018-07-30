@@ -334,13 +334,144 @@ def normality_tests(length):
     else:
         print('Sample does not look Gaussian (reject H0)')
 
-
-
-
-
-def main():
+def histogram_quartiles():    
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()
+        
+    cur.execute("SELECT SENTENCESCORES  FROM data22")
+    sentence_scores = cur.fetchall()
+    sentence_scores = [i[0] for i in sentence_scores]   # multiple list of strings
+    cur.execute("SELECT SENTENCEMAGNITUDES  FROM data22")
+    sentence_mags = cur.fetchall()
+    sentence_mags = [i[0] for i in sentence_mags]   # multiple list of strings
+    
+    quartileBottom_score = []
+    quartileBottom_mag = []
+    halfMiddle_score = []
+    halfMiddle_mag = []
+    quartileTop_score = []
+    quartileTop_mag = []
+
+        
+    for i in range(len(sentence_scores)):
+        print("i: ", i)
+        sentence_score = eval(sentence_scores[i])   # simple list of floats
+        sentence_mag = eval(sentence_mags[i])
+        for i in range(len(sentence_score)):
+            if i < round((0.25*len(sentence_score))):
+                quartileBottom_score.append(sentence_score[i])
+                quartileBottom_mag.append(sentence_mag[i])
+            if i > round((0.75*len(sentence_score))):
+                quartileTop_score.append(sentence_score[i])
+                quartileTop_mag.append(sentence_mag[i])
+            else:
+                halfMiddle_score.append(sentence_score[i])
+                halfMiddle_mag.append(sentence_mag[i])
+        
+    n_groups = 3
+#    absBottom_score = [abs(number) for number in quartileBottom_score]
+#    absMiddle_score = [abs(number) for number in halfMiddle_score]
+#    absTop_score = [abs(number) for number in quartileTop_score]
+    means_score = (np.average(quartileBottom_score), np.average(halfMiddle_score), np.average(quartileTop_score))
+#    means_score = (np.average(absBottom_score), np.average(absMiddle_score), np.average(absTop_score))
+    std_score = (np.std(quartileBottom_score), np.std(halfMiddle_score), np.std(quartileTop_score))
+
+    means_mag = (np.average(quartileBottom_mag), np.average(quartileTop_mag), np.average(quartileTop_mag))
+    std_mag = (np.std(quartileBottom_mag), np.std(quartileTop_mag), np.std(quartileTop_mag))
+    fig, ax = plt.subplots()
+    
+    print("Means Sentiment Score: ", means_score)
+    print("Means Magnitude: ", means_mag)
+    
+    index = np.arange(n_groups)
+    bar_width = 0.35
+    
+    opacity = 0.4
+    error_config = {'ecolor': '0.3'}
+    
+    rects1 = ax.bar(index, means_score, bar_width,
+                    alpha=opacity, color='b',
+                    yerr=std_score, error_kw=error_config,
+                    label='Sentiment')
+        
+    rects2 = ax.bar(index + bar_width, means_mag, bar_width,
+                    alpha=opacity, color='r',
+                    yerr=std_mag, error_kw=error_config,
+                    label='Magnitude')
+    
+#    ax.set_xlabel('Quartiles')
+    ax.set_ylabel('Scores')
+    ax.set_title('Scores by sentiment and magnitude')
+    ax.set_xticks(index + bar_width / 2)
+    ax.set_xticklabels(('Bottom quartile', 'Middle half', 'Top quartile'))    
+    ax.legend((rects1[0], rects2[0]), ('Sentiment', 'Magnitude'))
+        
+    
+    fig.tight_layout()
+    plt.show()    
+    
+def distribution_sentences_histo():     
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+    cur.execute("SELECT SENTENCESCORES  FROM data22")
+    sentence_scores = cur.fetchall()
+    sentence_scores = [i[0] for i in sentence_scores]   # multiple list of strings
+    cur.execute("SELECT SENTENCEMAGNITUDES  FROM data22")
+    sentence_mags = cur.fetchall()
+    sentence_mags = [i[0] for i in sentence_mags]   # multiple list of strings
+    
+    quartileBottom_score = []
+    quartileBottom_mag = []
+#    halfMiddle_score = []
+#    halfMiddle_mag = []
+    quartileTop_score = []
+    quartileTop_mag = []
+    
+        
+    for i in range(len(sentence_scores)):
+        print("i: ", i)
+        sentence_score = eval(sentence_scores[i])   # simple list of floats
+        sentence_mag = eval(sentence_mags[i])
+        for i in range(len(sentence_score)):
+            if i < round((0.25*len(sentence_score))):
+                quartileBottom_score.append(sentence_score[i])
+                quartileBottom_mag.append(sentence_mag[i])
+            if i > round((0.75*len(sentence_score))):
+#            if i == len(sentence_score)-1:
+                quartileTop_score.append(sentence_score[i])
+                quartileTop_mag.append(sentence_mag[i])
+#            else:
+#                halfMiddle_score.append(sentence_score[i])
+#                halfMiddle_mag.append(sentence_mag[i])
+    
+    
+    # create an empty figure object
+    fig = plt.figure()
+    # create a single axis on that figure
+    ax = fig.add_subplot(1,1,1)
+    # histogram the data and label the axes
+    ax.set_xlabel("Sentiment Score")
+    ax.set_ylabel("Number of loans")
+    fig.suptitle('Distribution of bottom quartile sentences sentiment')
+    ax.hist(quartileBottom_score)
+    plt.show()
+    
+    # create an empty figure object
+    fig = plt.figure()
+    # create a single axis on that figure
+    ax = fig.add_subplot(1,1,1)
+    # histogram the data and label the axes
+    ax.set_xlabel("Sentiment Score")
+    ax.set_ylabel("Number of loans")
+    fig.suptitle('Distribution of top quartile sentences sentiment')
+    ax.hist(quartileTop_score)
+    plt.show()    
+        
+    
+    
+def main():
+#    con = sqlite3.connect('databaseTest.db')
+#    cur = con.cursor()
         
 #    cur.execute("SELECT GAP FROM nosuccess WHERE LOAN_AMOUNT < 2000 AND SECTOR_NAME = 'Agriculture'")
 #    gap = cur.fetchall()
@@ -410,9 +541,12 @@ def main():
     
 #    distribution_loan_amount_plot()
 #    distribution_loan_amount_days_histogram()
-    distribution_loan_amount_gap_histogram()
+#    distribution_loan_amount_gap_histogram()
 #    normality_tests(np.log(length_speed))
     
+#    histogram_quartiles()
+#    plt.show()
+    distribution_sentences_histo()
     
 if __name__ == "__main__": main()
 

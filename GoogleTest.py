@@ -124,6 +124,37 @@ def scatter_linearity(x, x_label, y, y_label, name):
     plt.scatter(x, y)
     plt.show()
     
+def multicollinearity():
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+    
+    # x1-variable in regression is the project description length ("WORD_COUNT")
+    cur.execute("SELECT WORD_COUNT FROM data11") #NORM_WORDS
+    x1 = cur.fetchall()
+    x1 = np.array([i[0] for i in x1])
+    x1 = x1.reshape(len(x1), 1)
+    print("x1 shape: ", x1.shape)
+    # x2-variable in regression is the description's sentiment score ("SENTIMENTSCORE")
+    cur.execute("SELECT SENTIMENTSCORE FROM data11") #NORM_SCORE
+    x2 = cur.fetchall()
+    x2 = np.array([i[0] for i in x2])
+    x2 = x2.reshape(len(x2), 1)
+    print("x2 shape: ", x2.shape)
+    # x3-variable in regression is the description's magnitude score ("MAGNITUDE")
+    cur.execute("SELECT MAGNITUDE FROM data11") #NORM_MAGNITUDE
+    x3 = cur.fetchall()
+    x3 = np.array([i[0] for i in x3])
+    x3 = x3.reshape(len(x3), 1)
+    print("x3 shape: ", x3.shape)
+    
+    X = np.concatenate((x1,x2,x3), axis = 1)
+    print("X shape: ", X.shape)
+    corr = np.corrcoef(X, rowvar=0)
+    w, v = np.linalg.eig(corr)
+    print(w)
+    print(v[:,2])
+    print(v[:,0])
+
 
 
 def linear_regression():
@@ -135,25 +166,25 @@ def linear_regression():
     cur = con.cursor()
     
     # y-variable in regression is funding gap  
-    cur.execute("SELECT DAYS_NEEDED FROM data12")
+    cur.execute("SELECT GAP FROM data22")
     y = cur.fetchall()
     y = np.array([i[0] for i in y])     # list of int
     print("y shape: ", y.shape)
 
     # x1-variable in regression is the project description length ("WORD_COUNT")
-    cur.execute("SELECT WORD_COUNT FROM data12")
+    cur.execute("SELECT NORM_WORDS FROM data22")
     x1 = cur.fetchall()
     x1 = np.array([i[0] for i in x1])
     x1 = x1.reshape(len(x1), 1)
     print("x1 shape: ", x1.shape)
     # x2-variable in regression is the description's sentiment score ("SENTIMENTSCORE")
-    cur.execute("SELECT SENTIMENTSCORE FROM data12")
+    cur.execute("SELECT NORM_SCORE FROM data22")
     x2 = cur.fetchall()
     x2 = np.array([i[0] for i in x2])
     x2 = x2.reshape(len(x2), 1)
     print("x2 shape: ", x2.shape)
     # x3-variable in regression is the description's magnitude score ("MAGNITUDE")
-    cur.execute("SELECT MAGNITUDE FROM data12")
+    cur.execute("SELECT NORM_MAGNITUDE FROM data22")
     x3 = cur.fetchall()
     x3 = np.array([i[0] for i in x3])
     x3 = x3.reshape(len(x3), 1)
@@ -176,13 +207,51 @@ def linear_regression():
     print("R Squared: ", regressor.score(X,y))
     
     
+def lin_reg_multi():
+    import statsmodels.api as sm
     
-
-
-
-def main():
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()
+    
+    # y-variable in regression is funding gap  
+    cur.execute("SELECT DAYS_NEEDED FROM data11")
+    y = cur.fetchall()
+    y = np.array([i[0] for i in y])     # list of int
+    print("y shape: ", y.shape)
+
+    # x1-variable in regression is the project description length ("WORD_COUNT")
+    cur.execute("SELECT NORM_WORDS FROM data11")
+    x1 = cur.fetchall()
+    x1 = np.array([i[0] for i in x1])
+    x1 = x1.reshape(len(x1), 1)
+    print("x1 shape: ", x1.shape)
+    # x2-variable in regression is the description's sentiment score ("SENTIMENTSCORE")
+    cur.execute("SELECT NORM_SCORE FROM data11")
+    x2 = cur.fetchall()
+    x2 = np.array([i[0] for i in x2])
+    x2 = x2.reshape(len(x2), 1)
+    print("x2 shape: ", x2.shape)
+    # x3-variable in regression is the description's magnitude score ("MAGNITUDE")
+    cur.execute("SELECT NORM_MAGNITUDE FROM data11")
+    x3 = cur.fetchall()
+    x3 = np.array([i[0] for i in x3])
+    x3 = x3.reshape(len(x3), 1)
+    print("x3 shape: ", x3.shape)
+    
+    X = np.concatenate((x1,x2,x3), axis = 1)
+    print("X shape: ", X.shape)
+    
+    X = sm.add_constant(X)
+        
+    model = sm.OLS(y, X)
+    results = model.fit()
+    print(results.summary())        
+    
+    
+
+def main():
+#    con = sqlite3.connect('databaseTest.db')
+#    cur = con.cursor()
         
     ##### Sentiment Score Data11 ###
 #    cur.execute("SELECT SENTIMENTSCORE FROM dataset11")
@@ -226,10 +295,10 @@ def main():
 #    scatter_linearity(magnitude, "Sentiment magnitude", days, "Funding speed", "Plot of funding speed and sentiment magnitude - set 12")
 #
     ##### Sentiment Score Data21 ###
-    cur.execute("SELECT SENTIMENTSCORE FROM dataset21")
-    sentimentScore = cur.fetchall()
-    sentimentScore = np.array([i[0] for i in sentimentScore])
-    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 21")
+#    cur.execute("SELECT SENTIMENTSCORE FROM dataset21")
+#    sentimentScore = cur.fetchall()
+#    sentimentScore = np.array([i[0] for i in sentimentScore])
+#    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 21")
 #    cur.execute("SELECT GAP FROM data21")
 #    gap = cur.fetchall()
 #    gap = np.array([i[0] for i in gap])
@@ -291,6 +360,8 @@ def main():
     
     
 #    linear_regression()
+    multicollinearity()
+#    lin_reg_multi()
     
 
     

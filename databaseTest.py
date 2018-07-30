@@ -11,7 +11,8 @@ import numpy as np
 import datetime
 #import re
 import enchant
-import random
+from scipy import stats
+
     
 
 def import_data():
@@ -80,11 +81,11 @@ def continents_and_countries():
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()
     
-    # 1. Create new integer columns EUROPE, NORTH AMERICA, SOUTH AMERICA, AFRICA
-#    cur.execute("ALTER TABLE funded ADD COLUMN EUROPE BOOLEAN CHECK (EUROPE IN (0,1))")
+#     1. Create new integer columns EUROPE, NORTH AMERICA, SOUTH AMERICA, AFRICA
+    cur.execute("ALTER TABLE funded ADD COLUMN EUROPE BOOLEAN CHECK (EUROPE IN (0,1))")
     
-    # 2. Update table and set the continent column to 1 if it's the correct continent
-#    cur.execute("UPDATE funded SET EUROPE = 1 WHERE COUNTRY_NAME IN ('Ukraine', 'Kosovo', 'Turkey', 'Moldova', 'Bosnia and Herzegovina', 'Bulgaria')")
+#     2. Update table and set the continent column to 1 if it's the correct continent
+    cur.execute("UPDATE funded SET EUROPE = 1 WHERE COUNTRY_NAME IN ('Ukraine', 'Kosovo', 'Turkey', 'Moldova', 'Bosnia and Herzegovina', 'Bulgaria')")
     cur.execute("UPDATE funded SET EUROPE = 0 WHERE COUNTRY_NAME NOT IN ('Ukraine', 'Kosovo', 'Turkey', 'Moldova', 'Bosnia and Herzegovina', 'Bulgaria')")
     con.commit()
     
@@ -526,11 +527,91 @@ def normalisation2():
     cur.execute("CREATE TABLE dataset11 AS SELECT data11.*, temp.NORM_SCORE, temp.NORM_SENTENCESCORES FROM data11, temp WHERE data11.LOAN_ID = temp.LOAN_ID")
     con.commit()
 
+def sentiment_median():
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+        
+    cur.execute("SELECT SENTENCESCORES FROM dataset11")
+    sentence_scores = cur.fetchall()
+    sentence_scores = [i[0] for i in sentence_scores]   # multiple list of strings
+    cur.execute("SELECT LOAN_ID  FROM dataset11")
+    loan_id = cur.fetchall()
+    loan_id = [i[0] for i in loan_id]       # list of ints
+
+    sentiment_score_list = []
+    
+    for i in range(len(sentence_scores)):    #length: 3627
+        print("i: ", i)
+        sentence_score = eval(sentence_scores[i])   # simple list of floats
+        sentiment_score = np.median(sentence_score)
+        sentiment_score_list.append(sentiment_score)
+        
+    average = np.average(sentiment_score_list)
+    std = np.std(sentiment_score_list)
+    print("average: ", average )
+    print("std: ", std)
+    
+    norm_score_median_list = []
+    for i in range(len(sentiment_score_list)):
+        norm_score_median = (sentiment_score_list[i]- average)/std
+        norm_score_median_list.append(norm_score_median)
+        
+
+    cur.execute("DROP TABLE IF EXISTS temp")
+    cur.execute("CREATE TABLE temp(SCORE_MEDIAN numeric, NORM_SCORE_MEDIAN numeric, LOAN_ID integer)")
+    
+    def insert(norm_mag, norm_mag_sentences, loan_ids):
+        cur.execute("INSERT INTO temp (SCORE_MEDIAN, NORM_SCORE_MEDIAN, LOAN_ID) VALUES (?, ?, ?)", (norm_mag, norm_mag_sentences, loan_ids))
+    
+    for norm_mag, norm_mag_sentences, loan_ids in zip(sentiment_score_list, norm_score_median_list, loan_id):
+        insert(norm_mag, norm_mag_sentences, loan_ids)
+    
+    cur.execute("CREATE TABLE data11 AS SELECT dataset11.*, temp.SCORE_MEDIAN, temp.NORM_SCORE_MEDIAN FROM dataset11, temp WHERE dataset11.LOAN_ID = temp.LOAN_ID")
+    con.commit()    
+  
+    
+def add_quartiles():
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+    #  1. Create new integer columns QUARTILE
+    cur.execute("ALTER TABLE data11 ADD COLUMN QUARTILE")
+    
+    # 2. Create a list variable
+    cur.execute("SELECT DAYS_NEEDED FROM data12")
+    gap = cur.fetchall()
+    gap = np.array([i[0] for i in gap])     # list of int
+    print(gap.shape)
+
+    print("max. days: ", max(gap))
+    print("min. days: ", min(gap))
+    print(np.median(gap))
+    print("25: ", stats.scoreatpercentile(gap, 25))
+    print("50: ", stats.scoreatpercentile(gap, 50))
+    print("75: ", stats.scoreatpercentile(gap, 75))
+    
+    
+    
+    #  3. Update table and set the quartile column to 1 if gap/ days_needed are in the first quartile, 2 if in the second quartile etc. until 4
+    cur.execute("UPDATE data11 SET QUARTILE = 1 WHERE DAYS_NEEDED <= %d " % (stats.scoreatpercentile(gap, 25)))
+    cur.execute("UPDATE data11 SET QUARTILE = 2 WHERE DAYS_NEEDED > %d AND DAYS_NEEDED <= %d" % (stats.scoreatpercentile(gap, 25), stats.scoreatpercentile(gap,50)))
+    cur.execute("UPDATE data11 SET QUARTILE = 3 WHERE DAYS_NEEDED > %d AND DAYS_NEEDED <= %d" % (stats.scoreatpercentile(gap, 50), stats.scoreatpercentile(gap,75)))
+    cur.execute("UPDATE data11 SET QUARTILE = 4 WHERE DAYS_NEEDED > %d " % (stats.scoreatpercentile(gap, 75)))
+    con.commit()
+    
+    # 3. Test if successful
+    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 1")
+    print("Quartile 1: ", cur.fetchall())
+    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 2")
+    print("Quartile 2: ", cur.fetchall())
+    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 3")
+    print("Quartile 3: ", cur.fetchall())
+    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 4")
+    print("Quartile 4: ", cur.fetchall())
 
 
 
 def main():
-    normalisation2()
+    add_quartiles()
 
     
     

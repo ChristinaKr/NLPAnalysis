@@ -4,8 +4,10 @@
 Created on Mon Jul 30 18:11:18 2018
 
 @author: christinakronser
+Source: https://github.com/chbrown/liwc-python
 """
 
+import sqlite3
 import re
 from collections import Counter
 
@@ -17,16 +19,59 @@ def tokenize(text):
 import liwc
 parse, category_names = liwc.load_token_parser('LIWC2007_English080730.dic')
 
-gettysburg = '''Four score and seven years ago our fathers brought forth on
-  this continent a new nation, conceived in liberty, and dedicated to the
-  proposition that all men are created equal. Now we are engaged in a great
-  civil war, testing whether that nation, or any nation so conceived and so
-  dedicated, can long endure. We are met on a great battlefield of that war.
-  We have come to dedicate a portion of that field, as a final resting place
-  for those who here gave their lives that that nation might live. It is
-  altogether fitting and proper that we should do this.'''
-gettysburg_tokens = tokenize(gettysburg)
-# now flatmap over all the categories in all of the tokens using a generator:
-gettysburg_counts = Counter(category for token in gettysburg_tokens for category in parse(token))
-# and print the results:
-print(gettysburg_counts)
+#gettysburg = '''This is my Daughter. I love her. Husband, friend, Son. Children, Cousin.'''
+#gettysburg_tokens = tokenize(gettysburg)
+## now flatmap over all the categories in all of the tokens using a generator:
+#gettysburg_counts = Counter(category for token in gettysburg_tokens for category in parse(token))
+## and print the results:
+#print(gettysburg_counts)
+#print("type: ", type(gettysburg_counts))
+#print(gettysburg_counts['article'])
+#print(gettysburg_counts.most_common(3))
+#print(gettysburg_counts.items())
+#print(type(gettysburg_counts.items()))
+
+#c.clear()      # reset all counts
+
+con = sqlite3.connect('databaseTest.db')
+cur = con.cursor()
+cur.execute("SELECT DESCRIPTION FROM data11")
+descriptions = cur.fetchall()
+descriptions = [i[0] for i in descriptions]
+cur.execute("SELECT DESCRIPTION_TRANSLATED FROM data11")
+description_trans = cur.fetchall()
+description_trans = [i[0] for i in description_trans]
+
+description = []
+
+
+for i in range(len(descriptions)):
+    if description_trans[i] == '':
+        descr = descriptions[i]
+    else:
+        descr = description_trans[i]
+    description.append(descr)
+
+cur.execute("SELECT LOAN_ID  FROM data11")
+loan_id = cur.fetchall()
+loan_id = [i[0] for i in loan_id]
+
+cur.execute("ALTER TABLE data11 ADD COLUMN FAMILY_COUNT integer")
+cur.execute("ALTER TABLE data11 ADD COLUMN HUMANS_COUNT integer")
+cur.execute("ALTER TABLE data11 ADD COLUMN HEALTH_COUNT integer")
+cur.execute("ALTER TABLE data11 ADD COLUMN WORK_COUNT integer")
+
+
+for i in range(len(description)):
+    description_tokens = tokenize(description[i])
+    c = Counter(category for token in description_tokens for category in parse(token))
+    family = c['family']
+    humans = c['humans']
+    health = c['health']
+    work = c['work']
+    loanID = loan_id[i]
+    print(family, humans, health, work)
+    
+    cur.execute("UPDATE data11 SET FAMILY_COUNT = (?), HUMANS_COUNT = (?), HEALTH_COUNT =(?), WORK_COUNT = (?) WHERE LOAN_ID = (?)", (family, humans, health, work, loanID))
+    c.clear()
+con.commit()

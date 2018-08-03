@@ -39,8 +39,32 @@ def random_forest():
     x3 = np.array([i[0] for i in x3])
     x3 = x3.reshape(len(x3), 1)
     print("x3 shape: ", x3.shape)
+
+    cur.execute("SELECT FAMILY_COUNT FROM data11")
+    x4 = cur.fetchall()
+    x4 = np.array([i[0] for i in x4])
+    x4 = x4.reshape(len(x4), 1)
+    print("x4 shape: ", x4.shape)
+
+    cur.execute("SELECT HUMANS_COUNT FROM data11") # MAGNITUDE
+    x5 = cur.fetchall()
+    x5 = np.array([i[0] for i in x5])
+    x5 = x5.reshape(len(x5), 1)
+    print("x5 shape: ", x5.shape)
+
+    cur.execute("SELECT HEALTH_COUNT FROM data11") # MAGNITUDE
+    x6 = cur.fetchall()
+    x6 = np.array([i[0] for i in x6])
+    x6 = x6.reshape(len(x6), 1)
+    print("x6 shape: ", x6.shape)
+
+    cur.execute("SELECT WORK_COUNT FROM data11") # MAGNITUDE
+    x7 = cur.fetchall()
+    x7 = np.array([i[0] for i in x7])
+    x7 = x7.reshape(len(x7), 1)
+    print("x7 shape: ", x7.shape)
     
-    X = np.concatenate((x1,x2,x3), axis = 1)
+    X = np.concatenate((x1,x2,x3, x4, x5, x6, x7), axis = 1)
     print("X shape: ", X.shape)
     
     # Using Skicit-learn to split data into training and testing sets
@@ -68,15 +92,15 @@ def random_forest():
     print('Mean Absolute Error:', round(np.mean(errors), 2), '$ of funding gap')
     
     # Calculate mean absolute percentage error (MAPE)
-    mape = 100 * (errors / test_labels)
+#    mape = 100 * (errors / test_labels)
     # Calculate and display accuracy
 #    accuracy = 100 - np.mean(mape)
 #    print('Accuracy:', round(accuracy, 2), '%.')
     
     # Get numerical feature importances
-    importances = list(rf.feature_importances_)
+    importances = rf.feature_importances_
     # List of tuples with variable and importance
-    feature_list = ["length", "sentiment score", "sentiment magnitude"]
+    feature_list = ["length", "sentiment score", "sentiment magnitude", "family count", "humans count", "health count", "work count"]
     feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
     # Sort the feature importances by most important first
     feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
@@ -85,7 +109,7 @@ def random_forest():
 
 def baseline():
     con = sqlite3.connect('databaseTest.db')
-    cur = con.cursor()
+    cur = con.cursor()    
     cur.execute("SELECT days_needed FROM data11")
     gap = cur.fetchall()
     gap = [i[0] for i in gap]
@@ -103,7 +127,7 @@ def baseline():
 def weights_by_sentence_position():
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()
-    cur.execute("SELECT SENTENCESCORES  FROM data22")
+    cur.execute("SELECT SENTENCESCORES  FROM data11")
     sentence_scores = cur.fetchall()
     sentence_scores = [i[0] for i in sentence_scores]   # multiple list of strings
         

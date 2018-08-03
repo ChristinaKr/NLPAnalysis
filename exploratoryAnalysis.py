@@ -465,11 +465,79 @@ def distribution_sentences_histo():
     ax.set_ylabel("Number of loans")
     fig.suptitle('Distribution of top quartile sentences sentiment')
     ax.hist(quartileTop_score)
-    plt.show()    
-        
+    plt.show()
+    
+def line_plot_distribution():
+    import numpy as np
+    
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+    cur.execute("SELECT FAMILY_COUNT  FROM data22")
+    family = cur.fetchall()
+    family = [i[0] for i in family]
+    cur.execute("SELECT HUMANS_COUNT  FROM data22")
+    humans = cur.fetchall()
+    humans = [i[0] for i in humans]
+    cur.execute("SELECT HEALTH_COUNT  FROM data22")
+    health = cur.fetchall()
+    health = [i[0] for i in health]
+    cur.execute("SELECT WORK_COUNT  FROM data22")
+    work = cur.fetchall()
+    work = [i[0] for i in work]
+    
+    
+    y,binEdges=np.histogram(family,bins=10)
+    bincenters_family = 0.5*(binEdges[1:]+binEdges[:-1])
+    y,binEdges=np.histogram(humans,bins=10)
+    bincenters_humans = 0.5*(binEdges[1:]+binEdges[:-1])
+    y,binEdges=np.histogram(health,bins=10)
+    bincenters_health = 0.5*(binEdges[1:]+binEdges[:-1])
+    y,binEdges=np.histogram(work,bins=10)
+    bincenters_work = 0.5*(binEdges[1:]+binEdges[:-1])
+    plt.plot(bincenters_family,y,'-', label = "Family")
+    plt.plot(bincenters_humans,y,'-', label = "Humans")
+    plt.plot(bincenters_health,y,'-', label = "Health")
+    plt.plot(bincenters_work,y,'-', label = "Work")
+    plt.ylabel("Number of loans")
+    plt.xlabel("Count")
+    plt.legend(loc='best')
+    plt.show()
+    
+    plt.hist(family)
+    
+def scatter_familycount_funding_time():
+    con = sqlite3.connect('databaseTest.db')
+    cur = con.cursor()
+    cur.execute("SELECT FAMILY_COUNT  FROM data22")
+    family = cur.fetchall()
+    family = [i[0] for i in family]
+    cur.execute("SELECT GAP  FROM data22")
+    days = cur.fetchall()
+    days = [i[0] for i in days]
+    
+
+    # create an empty figure object
+    fig = plt.figure()
+    # create a single axis on that figure
+    ax = fig.add_subplot(1,1,1)
+    # histogram the data and label the axes
+    ax.set_xlabel("Funding gap in $")
+    ax.set_ylabel("Family Count")
+    fig.suptitle('Scatter plot of funding gap and family count')
+    x_val = np.array(days)
+    ax.set_ylim([0,10])
+#    ax.set_xlim([0,400])
+    y_val = np.array(family)
+    ax.plot(x_val, y_val, 'x')
+    ax.plot(x_val, np.poly1d(np.polyfit(x_val, y_val, 1))(x_val), color = 'r', linewidth = 1.0)
+    
+    plt.show()
+
+    
     
     
 def main():
+    line_plot_distribution()
 #    con = sqlite3.connect('databaseTest.db')
 #    cur = con.cursor()
         
@@ -546,7 +614,7 @@ def main():
     
 #    histogram_quartiles()
 #    plt.show()
-    distribution_sentences_histo()
+#    distribution_sentences_histo()
     
 if __name__ == "__main__": main()
 

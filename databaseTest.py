@@ -588,8 +588,7 @@ def add_quartiles():
     print("25: ", stats.scoreatpercentile(gap, 25))
     print("50: ", stats.scoreatpercentile(gap, 50))
     print("75: ", stats.scoreatpercentile(gap, 75))
-    
-    
+      
     
     #  3. Update table and set the quartile column to 1 if gap/ days_needed are in the first quartile, 2 if in the second quartile etc. until 4
     cur.execute("UPDATE data11 SET QUARTILE = 1 WHERE DAYS_NEEDED <= %d " % (stats.scoreatpercentile(gap, 25)))

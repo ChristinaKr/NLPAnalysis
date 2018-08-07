@@ -16,55 +16,65 @@ def random_forest():
     cur = con.cursor()
     
     # y-variable in regression is funding speed  
-    cur.execute("SELECT DAYS_NEEDED FROM data11")
+    cur.execute("SELECT GAP FROM data22")
     y = cur.fetchall()
     y = np.array([i[0] for i in y])     # list of int
     print("y shape: ", y.shape)
     
     # x1-variable in regression is the project description length ("WORD_COUNT")
-    cur.execute("SELECT WORD_COUNT FROM data11") # WORD_COUNT
+    cur.execute("SELECT WORD_COUNT FROM data22") # WORD_COUNT
     x1 = cur.fetchall()
-    x1 = np.array([i[0] for i in x1])
-    x1 = x1.reshape(len(x1), 1)
+    x = np.array([i[0] for i in x1])
+    x1 = x.reshape(len(x), 1)
     print("x1 shape: ", x1.shape)
     # x2-variable in regression is the description's sentiment score ("SENTIMENTSCORE")
-    cur.execute("SELECT SCORE_MEDIAN FROM data11") # SENTIMENTSCORE
+    cur.execute("SELECT SENTIMENTSCORE FROM data22") # SENTIMENTSCORE
     x2 = cur.fetchall()
     x2 = np.array([i[0] for i in x2])
     x2 = x2.reshape(len(x2), 1)
     print("x2 shape: ", x2.shape)
     # x3-variable in regression is the description's magnitude score ("MAGNITUDE")
-    cur.execute("SELECT MAGNITUDE FROM data11") # MAGNITUDE
+    cur.execute("SELECT MAGNITUDE FROM data22") # MAGNITUDE
     x3 = cur.fetchall()
     x3 = np.array([i[0] for i in x3])
     x3 = x3.reshape(len(x3), 1)
     print("x3 shape: ", x3.shape)
 
-    cur.execute("SELECT FAMILY_COUNT FROM data11")
+    cur.execute("SELECT LOAN_AMOUNT FROM data22")
     x4 = cur.fetchall()
     x4 = np.array([i[0] for i in x4])
     x4 = x4.reshape(len(x4), 1)
     print("x4 shape: ", x4.shape)
 
-    cur.execute("SELECT HUMANS_COUNT FROM data11") # MAGNITUDE
-    x5 = cur.fetchall()
-    x5 = np.array([i[0] for i in x5])
-    x5 = x5.reshape(len(x5), 1)
-    print("x5 shape: ", x5.shape)
-
-    cur.execute("SELECT HEALTH_COUNT FROM data11") # MAGNITUDE
-    x6 = cur.fetchall()
-    x6 = np.array([i[0] for i in x6])
-    x6 = x6.reshape(len(x6), 1)
-    print("x6 shape: ", x6.shape)
-
-    cur.execute("SELECT WORK_COUNT FROM data11") # MAGNITUDE
-    x7 = cur.fetchall()
-    x7 = np.array([i[0] for i in x7])
-    x7 = x7.reshape(len(x7), 1)
-    print("x7 shape: ", x7.shape)
+#    cur.execute("SELECT HUMANS_COUNT FROM data22")
+#    humans = cur.fetchall()
+#    humans = np.array([i[0] for i in humans])
+#    cur.execute("SELECT FAMILY_COUNT FROM data22") 
+#    family = cur.fetchall()
+#    family = np.array([i[0] for i in family])
+#    x5 = (humans + family)/x
+#    x5 = x5.reshape(len(x5), 1)
+#    print("x5 shape: ", x5.shape)
+#
+#    cur.execute("SELECT HEALTH_COUNT FROM data22") 
+#    x6 = cur.fetchall()
+#    x6 = np.array([i[0] for i in x6])
+#    x6 = x6/x
+#    x6 = x6.reshape(len(x6), 1)
+#    print("x6 shape: ", x6.shape)
+#
+#    cur.execute("SELECT WORK_COUNT FROM data22") # MAGNITUDE
+#    work = cur.fetchall()
+#    work = np.array([i[0] for i in work])
+#    cur.execute("SELECT ACHIEVE_COUNT FROM data22") # MAGNITUDE
+#    achieve = cur.fetchall()
+#    achieve = np.array([i[0] for i in achieve])
+#    x7 = (work + achieve)/x
+#    x7 = x7.reshape(len(x7), 1)
+#    print("x7 shape: ", x7.shape)
     
-    X = np.concatenate((x1,x2,x3, x4, x5, x6, x7), axis = 1)
+    
+    X = np.concatenate((x1, x2, x3, x4), axis = 1)
     print("X shape: ", X.shape)
     
     # Using Skicit-learn to split data into training and testing sets
@@ -79,8 +89,9 @@ def random_forest():
     rf = RandomForestRegressor(n_estimators = 1000, random_state = 42)
     # Train the model on training data
     rf.fit(train_features, train_labels);
-    R2 = rf.score(train_features, train_labels)
+    R2 = rf.score(test_features, test_labels)
     print("R^2: ", R2)
+
     
     # Use the forest's predict method on the test data
     predictions = rf.predict(test_features)
@@ -90,17 +101,21 @@ def random_forest():
     errors = abs(predictions - test_labels)
     # Print out the mean absolute error (mae)
     print('Mean Absolute Error:', round(np.mean(errors), 2), '$ of funding gap')
-    
-    # Calculate mean absolute percentage error (MAPE)
-#    mape = 100 * (errors / test_labels)
-    # Calculate and display accuracy
-#    accuracy = 100 - np.mean(mape)
-#    print('Accuracy:', round(accuracy, 2), '%.')
+    from sklearn.metrics import r2_score    
+    R22 = r2_score(test_labels, predictions)
+    print("R^2 sklearn:", R22)
+
+    #Calculate mean absolute percentage error (MAPE)
+    mape = 100 * (errors / test_labels)
+    print("mean mape: ", np.mean(mape))
+    #Calculate and display accuracy
+    accuracy = 100 - np.mean(mape)
+    print('Accuracy:', round(accuracy, 2), '%.')
     
     # Get numerical feature importances
     importances = rf.feature_importances_
     # List of tuples with variable and importance
-    feature_list = ["length", "sentiment score", "sentiment magnitude", "family count", "humans count", "health count", "work count"]
+    feature_list = ["length", "sentiment score", "sentiment magnitude", "loan amount"]
     feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list, importances)]
     # Sort the feature importances by most important first
     feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
@@ -110,7 +125,7 @@ def random_forest():
 def baseline():
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()    
-    cur.execute("SELECT days_needed FROM data11")
+    cur.execute("SELECT days_needed FROM data22")
     gap = cur.fetchall()
     gap = [i[0] for i in gap]
     prediction_mean = np.average(gap)
@@ -127,7 +142,7 @@ def baseline():
 def weights_by_sentence_position():
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()
-    cur.execute("SELECT SENTENCESCORES  FROM data11")
+    cur.execute("SELECT SENTENCESCORES  FROM data22")
     sentence_scores = cur.fetchall()
     sentence_scores = [i[0] for i in sentence_scores]   # multiple list of strings
         
@@ -162,14 +177,14 @@ def weights_by_sentence_position():
 def without_null_sentence_position():
     con = sqlite3.connect('databaseTest.db')
     cur = con.cursor()
-    cur.execute("SELECT SENTENCESCORES  FROM data11")
+    cur.execute("SELECT SENTENCESCORES  FROM data22")
     sentence_scores = cur.fetchall()
     sentence_scores = [i[0] for i in sentence_scores]   # multiple list of strings
 #    sentence_scores = sentence_scores[3600:3626]
-    cur.execute("SELECT MAGNITUDE  FROM data11")
+    cur.execute("SELECT MAGNITUDE  FROM data22")
     magnitude = cur.fetchall()
     magnitude = [i[0] for i in magnitude]   # multiple list of strings
-    cur.execute("SELECT SENTIMENTSCORE  FROM data11")
+    cur.execute("SELECT SENTIMENTSCORE  FROM data22")
     sentiment = cur.fetchall()
     sentiment = [i[0] for i in sentiment]   # multiple list of strings
 
@@ -215,25 +230,25 @@ def confusion_mtx():
     
     
     # y-variable in regression is funding gap  
-    cur.execute("SELECT QUARTILE FROM data11")
+    cur.execute("SELECT QUARTILE FROM data22")
     y = cur.fetchall()
     y = np.array([i[0] for i in y])     # list of int
     print("y shape: ", y.shape)
     
     # x1-variable in regression is the project description length ("WORD_COUNT")
-    cur.execute("SELECT WORD_COUNT FROM data11") # WORD_COUNT
+    cur.execute("SELECT WORD_COUNT FROM data22") # WORD_COUNT
     x1 = cur.fetchall()
     x1 = np.array([i[0] for i in x1])
     x1 = x1.reshape(len(x1), 1)
     print("x1 shape: ", x1.shape)
     # x2-variable in regression is the description's sentiment score ("SENTIMENTSCORE")
-    cur.execute("SELECT SENTIMENTSCORE FROM data11") # SENTIMENTSCORE
+    cur.execute("SELECT SENTIMENTSCORE FROM data22") # SENTIMENTSCORE
     x2 = cur.fetchall()
     x2 = np.array([i[0] for i in x2])
     x2 = x2.reshape(len(x2), 1)
     print("x2 shape: ", x2.shape)
     # x3-variable in regression is the description's magnitude score ("MAGNITUDE")
-    cur.execute("SELECT MAGNITUDE FROM data11") # MAGNITUDE
+    cur.execute("SELECT MAGNITUDE FROM data22") # MAGNITUDE
     x3 = cur.fetchall()
     x3 = np.array([i[0] for i in x3])
     x3 = x3.reshape(len(x3), 1)
@@ -265,10 +280,11 @@ def confusion_mtx():
     print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
     
     
-    
-    
+    from sklearn.metrics import r2_score    
     R2 = clf.score(X_train, y_train)
+    R22 = r2_score(X_train, y_train)
     print("R^2: ", R2)
+    print("R^2 sklearn:", R22)
     
     # Use the forest's predict method on the test data
     print("predictions type: ", type(y_pred))

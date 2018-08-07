@@ -35,10 +35,10 @@ parse, category_names = liwc.load_token_parser('LIWC2007_English080730.dic')
 
 con = sqlite3.connect('databaseTest.db')
 cur = con.cursor()
-cur.execute("SELECT DESCRIPTION FROM data11")
+cur.execute("SELECT DESCRIPTION FROM data22")
 descriptions = cur.fetchall()
 descriptions = [i[0] for i in descriptions]
-cur.execute("SELECT DESCRIPTION_TRANSLATED FROM data11")
+cur.execute("SELECT DESCRIPTION_TRANSLATED FROM data22")
 description_trans = cur.fetchall()
 description_trans = [i[0] for i in description_trans]
 
@@ -52,26 +52,39 @@ for i in range(len(descriptions)):
         descr = description_trans[i]
     description.append(descr)
 
-cur.execute("SELECT LOAN_ID  FROM data11")
+cur.execute("SELECT LOAN_ID  FROM data22")
 loan_id = cur.fetchall()
 loan_id = [i[0] for i in loan_id]
 
-cur.execute("ALTER TABLE data11 ADD COLUMN FAMILY_COUNT integer")
-cur.execute("ALTER TABLE data11 ADD COLUMN HUMANS_COUNT integer")
-cur.execute("ALTER TABLE data11 ADD COLUMN HEALTH_COUNT integer")
-cur.execute("ALTER TABLE data11 ADD COLUMN WORK_COUNT integer")
+#cur.execute("ALTER TABLE data22 ADD COLUMN FAMILY_COUNT integer")
+#cur.execute("ALTER TABLE data22 ADD COLUMN HUMANS_COUNT integer")
+#cur.execute("ALTER TABLE data22 ADD COLUMN HEALTH_COUNT integer")
+#cur.execute("ALTER TABLE data22 ADD COLUMN WORK_COUNT integer")
+cur.execute("ALTER TABLE data22 ADD COLUMN ACHIEVE_COUNT integer")
 
 
 for i in range(len(description)):
     description_tokens = tokenize(description[i])
     c = Counter(category for token in description_tokens for category in parse(token))
-    family = c['family']
-    humans = c['humans']
-    health = c['health']
-    work = c['work']
+#    family = c['family']
+#    humans = c['humans']
+#    health = c['health']
+#    work = c['work']
+    achieve = c['achieve']
     loanID = loan_id[i]
-    print(family, humans, health, work)
+    print(achieve)
     
-    cur.execute("UPDATE data11 SET FAMILY_COUNT = (?), HUMANS_COUNT = (?), HEALTH_COUNT =(?), WORK_COUNT = (?) WHERE LOAN_ID = (?)", (family, humans, health, work, loanID))
+#    cur.execute("UPDATE data22 SET FAMILY_COUNT = (?), HUMANS_COUNT = (?), HEALTH_COUNT =(?), WORK_COUNT = (?) WHERE LOAN_ID = (?)", (family, humans, health, work, loanID))
+    cur.execute("UPDATE data22 SET ACHIEVE_COUNT = (?) WHERE LOAN_ID = (?)", (achieve, loanID))
     c.clear()
 con.commit()
+
+
+#
+#con = sqlite3.connect('databaseTest.db')
+#cur = con.cursor()
+#cur.execute("SELECT DAYS_NEEDED FROM data22")
+#descriptions = cur.fetchall()
+#descriptions = [i[0] for i in descriptions]
+#np.percentile(descriptions,100)
+

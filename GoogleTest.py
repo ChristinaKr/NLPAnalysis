@@ -166,29 +166,31 @@ def linear_regression():
     cur = con.cursor()
     
     # y-variable in regression is funding gap  
-    cur.execute("SELECT GAP FROM data22")
+    cur.execute("SELECT GAP FROM data11")
     y = cur.fetchall()
     y = np.array([i[0] for i in y])     # list of int
     print("y shape: ", y.shape)
 
     # x1-variable in regression is the project description length ("WORD_COUNT")
-    cur.execute("SELECT NORM_WORDS FROM data22")
+    cur.execute("SELECT NORM_WORDS FROM data11")
     x1 = cur.fetchall()
     x1 = np.array([i[0] for i in x1])
     x1 = x1.reshape(len(x1), 1)
     print("x1 shape: ", x1.shape)
     # x2-variable in regression is the description's sentiment score ("SENTIMENTSCORE")
-    cur.execute("SELECT NORM_SCORE FROM data22")
+    cur.execute("SELECT NORM_SCORE FROM data11")
     x2 = cur.fetchall()
     x2 = np.array([i[0] for i in x2])
     x2 = x2.reshape(len(x2), 1)
     print("x2 shape: ", x2.shape)
     # x3-variable in regression is the description's magnitude score ("MAGNITUDE")
-    cur.execute("SELECT NORM_MAGNITUDE FROM data22")
+    cur.execute("SELECT NORM_MAGNITUDE FROM data11")
     x3 = cur.fetchall()
     x3 = np.array([i[0] for i in x3])
     x3 = x3.reshape(len(x3), 1)
     print("x3 shape: ", x3.shape)
+    
+    
     
     X = np.concatenate((x1,x2,x3), axis = 1)
     print("X shape: ", X.shape)
@@ -238,7 +240,14 @@ def lin_reg_multi():
     x3 = x3.reshape(len(x3), 1)
     print("x3 shape: ", x3.shape)
     
-    X = np.concatenate((x1,x2,x3), axis = 1)
+    cur.execute("SELECT LOAN_AMOUNT FROM data11")
+    x4 = cur.fetchall()
+    x4 = np.array([i[0] for i in x4])
+    x4 = (x4-np.mean(x4))/np.std(x4)
+    x4 = x4.reshape(len(x4), 1)
+    print("x4 shape: ", x4.shape)
+    
+    X = np.concatenate((x1,x2,x3, x4), axis = 1)
     print("X shape: ", X.shape)
     
     X = sm.add_constant(X)
@@ -253,7 +262,7 @@ def main():
 #    con = sqlite3.connect('databaseTest.db')
 #    cur = con.cursor()
         
-    ##### Sentiment Score Data11 ###
+    ##### Sentiment Score data11 ###
 #    cur.execute("SELECT SENTIMENTSCORE FROM dataset11")
 #    sentimentScore = cur.fetchall()
 #    sentimentScore = np.array([i[0] for i in sentimentScore])
@@ -274,48 +283,48 @@ def main():
 #    days = np.array([i[0] for i in days])
 #    scatter_linearity(magnitude, "Sentiment magnitude", days, "Funding speed", "Plot of funding speed and sentiment magnitude - set 11")
 
-#    ##### Sentiment Score Data12 ###
+#    ##### Sentiment Score data11 ###
 #    cur.execute("SELECT SENTIMENTSCORE FROM dataset12")
 #    sentimentScore = cur.fetchall()
 #    sentimentScore = np.array([i[0] for i in sentimentScore])
 #    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 12")
-#    cur.execute("SELECT DAYS_NEEDED FROM data12")
+#    cur.execute("SELECT DAYS_NEEDED FROM data11")
 #    days = cur.fetchall()
 #    days = np.array([i[0] for i in days])
 #    scatter_linearity(sentimentScore, "Sentiment Score", days, "Funding speed", "Plot of funding speed and sentiment score - set 12")
 #     
 #    # Sentiment Magnitude
-#    cur.execute("SELECT MAGNITUDE FROM data12")
+#    cur.execute("SELECT MAGNITUDE FROM data11")
 #    magnitude = cur.fetchall()
 #    magnitude = np.array([i[0] for i in magnitude])
 ##    distribution_magnitude_histogram(magnitude, "Distribution Sentiment Magnitude Set 12")
-#    cur.execute("SELECT DAYS_NEEDED FROM data12")
+#    cur.execute("SELECT DAYS_NEEDED FROM data11")
 #    days = cur.fetchall()
 #    days = np.array([i[0] for i in days])
 #    scatter_linearity(magnitude, "Sentiment magnitude", days, "Funding speed", "Plot of funding speed and sentiment magnitude - set 12")
 #
-    ##### Sentiment Score Data21 ###
+    ##### Sentiment Score data11 ###
 #    cur.execute("SELECT SENTIMENTSCORE FROM dataset21")
 #    sentimentScore = cur.fetchall()
 #    sentimentScore = np.array([i[0] for i in sentimentScore])
 #    distribution_sentimentscore_histogram(sentimentScore, "Distribution Sentiment Score Set 21")
-#    cur.execute("SELECT GAP FROM data21")
+#    cur.execute("SELECT GAP FROM data11")
 #    gap = cur.fetchall()
 #    gap = np.array([i[0] for i in gap])
 #    scatter_linearity(sentimentScore, "Sentiment Score", gap, "Funding gap", "Plot of funding gap and sentiment score - set 21")
 #    
 #    # Sentiment Magnitude
-#    cur.execute("SELECT MAGNITUDE FROM data21")
+#    cur.execute("SELECT MAGNITUDE FROM data11")
 #    magnitude = cur.fetchall()
 #    magnitude = np.array([i[0] for i in magnitude])
 ##    distribution_magnitude_histogram(magnitude, "Distribution Sentiment Magnitude Set 21")
-#    cur.execute("SELECT GAP FROM data21")
+#    cur.execute("SELECT GAP FROM data11")
 #    gap = cur.fetchall()
 #    gap = np.array([i[0] for i in gap])
 #    scatter_linearity(magnitude, "Sentiment magnitude", gap, "Funding gap", "Plot of funding gap and sentiment magnitude - set 21")
 #
 
-    ##### Sentiment Score Data22 ###
+    ##### Sentiment Score data11 ###
 #    cur.execute("SELECT NORM_SCORE FROM dataset22")
 #    sentimentScore = cur.fetchall()
 #    sentimentScore = np.array([i[0] for i in sentimentScore])
@@ -349,19 +358,19 @@ def main():
 
 #
 #    # Sentiment Magnitude
-#    cur.execute("SELECT MAGNITUDE FROM data22")
+#    cur.execute("SELECT MAGNITUDE FROM data11")
 #    magnitude = cur.fetchall()
 #    magnitude = np.array([i[0] for i in magnitude])
 ##    distribution_magnitude_histogram(magnitude, "Distribution Sentiment Magnitude Set 22")
-#    cur.execute("SELECT GAP FROM data22")
+#    cur.execute("SELECT GAP FROM data11")
 #    gap = cur.fetchall()
 #    gap = np.array([i[0] for i in gap])
 #    scatter_linearity(magnitude, "Sentiment magnitude", gap, "Funding gap", "Plot of funding gap and sentiment magnitude - set 22")
     
     
 #    linear_regression()
-    multicollinearity()
-#    lin_reg_multi()
+#    multicollinearity()
+    lin_reg_multi()
     
 
     

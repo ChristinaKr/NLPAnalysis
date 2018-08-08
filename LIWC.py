@@ -12,7 +12,6 @@ import re
 from collections import Counter
 
 def tokenize(text):
-    # you may want to use a smarter tokenizer
     for match in re.finditer(r'\w+', text, re.UNICODE):
         yield match.group(0)
 
@@ -52,15 +51,15 @@ for i in range(len(descriptions)):
         descr = description_trans[i]
     description.append(descr)
 
-cur.execute("SELECT LOAN_ID  FROM data22")
-loan_id = cur.fetchall()
-loan_id = [i[0] for i in loan_id]
+#cur.execute("SELECT LOAN_ID  FROM data22")
+#loan_id = cur.fetchall()
+#loan_id = [i[0] for i in loan_id]
 
 #cur.execute("ALTER TABLE data22 ADD COLUMN FAMILY_COUNT integer")
 #cur.execute("ALTER TABLE data22 ADD COLUMN HUMANS_COUNT integer")
 #cur.execute("ALTER TABLE data22 ADD COLUMN HEALTH_COUNT integer")
 #cur.execute("ALTER TABLE data22 ADD COLUMN WORK_COUNT integer")
-cur.execute("ALTER TABLE data22 ADD COLUMN ACHIEVE_COUNT integer")
+#cur.execute("ALTER TABLE data22 ADD COLUMN ACHIEVE_COUNT integer")
 
 
 for i in range(len(description)):
@@ -78,13 +77,4 @@ for i in range(len(description)):
     cur.execute("UPDATE data22 SET ACHIEVE_COUNT = (?) WHERE LOAN_ID = (?)", (achieve, loanID))
     c.clear()
 con.commit()
-
-
-#
-#con = sqlite3.connect('databaseTest.db')
-#cur = con.cursor()
-#cur.execute("SELECT DAYS_NEEDED FROM data22")
-#descriptions = cur.fetchall()
-#descriptions = [i[0] for i in descriptions]
-#np.percentile(descriptions,100)
 

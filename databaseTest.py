@@ -22,7 +22,7 @@ def import_data():
     Source data import: https://stackoverflow.com/questions/2887878/importing-a-csv-file-into-a-sqlite3-database-table-using-python
     
     """
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     cur.execute("CREATE TABLE loans (LOAN_ID,LOAN_NAME,ORIGINAL_LANGUAGE,DESCRIPTION,DESCRIPTION_TRANSLATED,FUNDED_AMOUNT,LOAN_AMOUNT,STATUS,IMAGE_ID,VIDEO_ID,ACTIVITY_NAME,SECTOR_NAME,LOAN_USE,COUNTRY_CODE,COUNTRY_NAME,TOWN_NAME,CURRENCY_POLICY,CURRENCY_EXCHANGE_COVERAGE_RATE,CURRENCY,PARTNER_ID,POSTED_TIME,PLANNED_EXPIRATION_TIME,DISBURSE_TIME,RAISED_TIME,LENDER_TERM,NUM_LENDERS_TOTAL,NUM_JOURNAL_ENTRIES,NUM_BULK_ENTRIES,TAGS,BORROWER_NAMES,BORROWER_GENDERS,BORROWER_PICTURED,REPAYMENT_INTERVAL,DISTRIBUTION_MODEL);")
     
@@ -40,7 +40,7 @@ def data_validity():
     """
     Tests to check correctness of data and validity of database
     """
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
 
 #    #Test
@@ -65,7 +65,7 @@ def subset_test_funding_speed():
     """
     Tests to check which data subset to use for further analyses
     """
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     
 #    cur.execute("SELECT DISTINCT BORROWER_GENDERS FROM funded WHERE BORROWER_GENDERS NOT LIKE '%female%'")
@@ -78,7 +78,7 @@ def subset_test_funding_speed():
     
 
 def continents_and_countries():
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     
 #     1. Create new integer columns EUROPE, NORTH AMERICA, SOUTH AMERICA, AFRICA
@@ -99,7 +99,7 @@ def distribution_funding_speed_histogram():
     Distribution of funding speed
     """
     
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     
     cur.execute("SELECT DAYS_NEEDED FROM funded WHERE BORROWER_GENDERS NOT LIKE '%female%' AND LOAN_AMOUNT > 4000 AND SECTOR_NAME = 'Agriculture' AND EUROPE = 0")
@@ -124,7 +124,7 @@ def distribution_funding_gap_histogram():
     Distribution of funding gap
     """
     
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
         
     cur.execute("SELECT GAP FROM notfunded WHERE LOAN_AMOUNT > 4000 AND SECTOR_NAME = 'Agriculture'")
@@ -148,7 +148,7 @@ def non_recurring_db_script_days_needed_for_funding():
     """
     Adds the days needed for funding to the database and creates the table "funded"
     """
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     
     cur.execute("SELECT RAISED_TIME FROM loans WHERE STATUS = 'funded'")
@@ -196,7 +196,7 @@ def non_recurring_db_script_funding_gap():
     """
     Adds the funding gap to the database and creates the table "notfunded"
     """
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     
     cur.execute("SELECT LOAN_AMOUNT FROM loans WHERE STATUS = 'expired'")
@@ -237,7 +237,7 @@ def non_recurring_delete_unnecessary_data():
     """
     Delete rest of the data from database so that data subset we use is the only remaining one
     """
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
  
 ### For table: funded    
@@ -290,7 +290,7 @@ def non_recurring_delete_unnecessary_data():
     print("Final amount of data: ", cur.fetchone())
 
 def description_length_funded():
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     
     cur.execute("SELECT DESCRIPTION FROM funded")
@@ -330,7 +330,7 @@ def description_length_funded():
     con.commit()
         
 def description_length_notfunded():
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     
     cur.execute("SELECT DESCRIPTION FROM notfunded")
@@ -371,7 +371,7 @@ def description_length_notfunded():
 def check_English_descriptions():
     index = []
 
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     cur.execute("SELECT DESCRIPTION FROM nosuccess WHERE LOAN_AMOUNT > 2000 AND SECTOR_NAME = 'Agriculture' ")
     descriptions = cur.fetchall()
@@ -415,7 +415,7 @@ def check_english():
     print(string.split(' ')[3])
 
 def descriptions_less_words():
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
 #    cur.execute("SELECT DESCRIPTION FROM success")
 #    descriptions = cur.fetchall()
@@ -441,7 +441,7 @@ def descriptions_less_words():
     print("before: ", cur.fetchone())
 
 def normalisation():
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     
     cur.execute("SELECT WORD_COUNT FROM set11")
@@ -477,7 +477,7 @@ def normalisation():
 
 
 def normalisation2():
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     
     cur.execute("SELECT SENTIMENTSCORE FROM data11")
@@ -528,7 +528,7 @@ def normalisation2():
     con.commit()
 
 def sentiment_median():
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
         
     cur.execute("SELECT SENTENCESCORES FROM dataset11")
@@ -571,46 +571,120 @@ def sentiment_median():
   
     
 def add_quartiles():
-    con = sqlite3.connect('databaseTest.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     #  1. Create new integer columns QUARTILE
-    cur.execute("ALTER TABLE data11 ADD COLUMN QUARTILE")
+#    cur.execute("ALTER TABLE data11 ADD COLUMN QUARTILE")
     
     # 2. Create a list variable
-    cur.execute("SELECT DAYS_NEEDED FROM data12")
+    cur.execute("SELECT gap FROM data22")
     gap = cur.fetchall()
     gap = np.array([i[0] for i in gap])     # list of int
     print(gap.shape)
 
-    print("max. days: ", max(gap))
-    print("min. days: ", min(gap))
+    print("max. gap: ", max(gap))
+    print("min. gap: ", min(gap))
     print(np.median(gap))
     print("25: ", stats.scoreatpercentile(gap, 25))
     print("50: ", stats.scoreatpercentile(gap, 50))
     print("75: ", stats.scoreatpercentile(gap, 75))
       
+#    
+#    #  3. Update table and set the quartile column to 1 if gap/ days_needed are in the first quartile, 2 if in the second quartile etc. until 4
+#    cur.execute("UPDATE data11 SET QUARTILE = 1 WHERE DAYS_NEEDED <= %d " % (stats.scoreatpercentile(gap, 25)))
+#    cur.execute("UPDATE data11 SET QUARTILE = 2 WHERE DAYS_NEEDED > %d AND DAYS_NEEDED <= %d" % (stats.scoreatpercentile(gap, 25), stats.scoreatpercentile(gap,50)))
+#    cur.execute("UPDATE data11 SET QUARTILE = 3 WHERE DAYS_NEEDED > %d AND DAYS_NEEDED <= %d" % (stats.scoreatpercentile(gap, 50), stats.scoreatpercentile(gap,75)))
+#    cur.execute("UPDATE data11 SET QUARTILE = 4 WHERE DAYS_NEEDED > %d " % (stats.scoreatpercentile(gap, 75)))
+#    con.commit()
+#    
+#    # 4. Test if successful
+#    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 1")
+#    print("Quartile 1: ", cur.fetchall())
+#    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 2")
+#    print("Quartile 2: ", cur.fetchall())
+#    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 3")
+#    print("Quartile 3: ", cur.fetchall())
+#    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 4")
+#    print("Quartile 4: ", cur.fetchall())
+
+def funding_speed_in_hours():
+    con = sqlite3.connect('database.db')
+    cur = con.cursor()
     
-    #  3. Update table and set the quartile column to 1 if gap/ days_needed are in the first quartile, 2 if in the second quartile etc. until 4
-    cur.execute("UPDATE data11 SET QUARTILE = 1 WHERE DAYS_NEEDED <= %d " % (stats.scoreatpercentile(gap, 25)))
-    cur.execute("UPDATE data11 SET QUARTILE = 2 WHERE DAYS_NEEDED > %d AND DAYS_NEEDED <= %d" % (stats.scoreatpercentile(gap, 25), stats.scoreatpercentile(gap,50)))
-    cur.execute("UPDATE data11 SET QUARTILE = 3 WHERE DAYS_NEEDED > %d AND DAYS_NEEDED <= %d" % (stats.scoreatpercentile(gap, 50), stats.scoreatpercentile(gap,75)))
-    cur.execute("UPDATE data11 SET QUARTILE = 4 WHERE DAYS_NEEDED > %d " % (stats.scoreatpercentile(gap, 75)))
+    cur.execute("SELECT RAISED_TIME FROM data11")
+    raised_times = cur.fetchall()
+    raised_times = [i[0] for i in raised_times]
+    RAISED_TIME = []
+    
+    cur.execute("SELECT POSTED_TIME FROM data11")
+    posted_times = cur.fetchall()
+    posted_times = [i[0] for i in posted_times]
+    POSTED_TIME = []
+    
+    #set the date and time format
+    date_format = "%Y-%m-%d %H:%M:%S"
+    
+    cur.execute("ALTER TABLE data11 ADD COLUMN HOURS numeric")
+    cur.execute("SELECT LOAN_ID  FROM data11")
+    loan_id = cur.fetchall()
+    loan_id = [i[0] for i in loan_id]
+
+    for i in range(len(raised_times)):
+        raised_time = raised_times[i]
+        raisedTime = raised_time[:19]
+        RAISED_TIME.append(datetime.datetime.strptime(raisedTime, date_format))
+        
+        posted_time = posted_times[i]
+        postedTime = posted_time[:19]
+        POSTED_TIME.append(datetime.datetime.strptime(postedTime, date_format))
+        
+        diff = (RAISED_TIME[i] - POSTED_TIME[i])
+        days = diff.days
+        #calculate overall hours
+        days_to_hours = days * 24
+        diff_btw_two_times = (diff.seconds) / 3600
+        hours = days_to_hours + diff_btw_two_times
+        
+        loanID = loan_id[i]
+
+        cur.execute("UPDATE data11 SET HOURS = (?) WHERE LOAN_ID = (?)", (hours, loanID))
+
+        print ('Progress: {}/{} rows processed'.format(i, len(raised_times)))
     con.commit()
-    
-    # 3. Test if successful
-    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 1")
-    print("Quartile 1: ", cur.fetchall())
-    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 2")
-    print("Quartile 2: ", cur.fetchall())
-    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 3")
-    print("Quartile 3: ", cur.fetchall())
-    cur.execute("SELECT COUNT(QUARTILE) FROM data11 WHERE QUARTILE = 4")
-    print("Quartile 4: ", cur.fetchall())
+        
+
+
+
+
+#    import datetime
+#    #set the date and time format
+#    date_format = "%Y-%m-%d %H:%M:%S"
+#    #convert string to actual date and time
+#    raisedTime = "2014-02-22 17:53:56"
+#    raisedTime = datetime.datetime.strptime(raisedTime, date_format)
+#    print(raisedTime)
+#
+#    
+#    postedTime = "2014-02-22 17:52:56"
+#    postedTime = datetime.datetime.strptime(postedTime, "%Y-%m-%d %H:%M:%S")
+#    print(postedTime)
+#    
+#    diff = raisedTime - postedTime
+#    print(diff)
+#    days = diff.days
+#    print (str(days) + ' day(s)')
+#    print(diff.seconds, ' seconds')
+#    #print overall hours
+#    days_to_hours = days * 24
+#    diff_btw_two_times = (diff.seconds) / 3600
+#    overall_hours = days_to_hours + diff_btw_two_times
+#    print (overall_hours, ' hours')
 
 
 
 def main():
     add_quartiles()
+#    funding_speed_in_hours()
 
     
     

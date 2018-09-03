@@ -4,6 +4,9 @@
 Created on Thu Jul  5 09:52:02 2018
 
 @author: christinakronser
+
+Database to be found: https://drive.google.com/file/d/1KHmasvJFN4AWuflgicGeqvInMmNkKkio/view?usp=sharing
+
 """
 
 import numpy as np

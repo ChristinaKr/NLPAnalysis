@@ -5,6 +5,8 @@ Created on Mon Jul 30 18:11:18 2018
 
 @author: christinakronser
 Source: https://github.com/chbrown/liwc-python
+
+Database to be found: https://drive.google.com/file/d/1KHmasvJFN4AWuflgicGeqvInMmNkKkio/view?usp=sharing
 """
 
 import sqlite3

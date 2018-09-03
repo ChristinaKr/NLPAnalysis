@@ -4,14 +4,14 @@
 Created on Tue Jul 17 16:49:29 2018
 
 @author: christinakronser
+
+Database to be found: https://drive.google.com/file/d/1KHmasvJFN4AWuflgicGeqvInMmNkKkio/view?usp=sharing
 """
 import numpy as np
 import sqlite3
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
-import re
-from collections import Counter
 
 def select(cur, variable, table):
     """
@@ -23,64 +23,6 @@ def select(cur, variable, table):
     return variable
 
 
-#def LIWC(cur):
-#    
-#    def tokenize(text):
-#        for match in re.finditer(r'\w+', text, re.UNICODE):
-#            yield match.group(0)
-#    
-#    import liwc
-#    parse, category_names = liwc.load_token_parser('LIWC2007_English080730.dic')
-#    
-#    descriptions = np.array(select(cur,"DESCRIPTION", "data11"))
-#    description_trans = np.array(select(cur,"DESCRIPTION_TRANSLATED", "data11"))
-#    
-#    description = []
-#    
-#    # Select original or translated description (depending on which one is in English)
-#    for i in range(len(descriptions)):
-#        if description_trans[i] == '':
-#            descr = descriptions[i]
-#        else:
-#            descr = description_trans[i]
-#        description.append(descr)
-#    
-#    pronouns_list = []
-#    insight_list = []
-#    number_list = []
-#    quant_list = []
-#    shehe_list = []
-#    i_list = []
-#    
-#    # Retrieve counts of LIWC-related words in description from dictionary
-#    for i in range(len(description)):
-#        description_tokens = tokenize(description[i])
-#        c = Counter(category for token in description_tokens for category in parse(token))
-#        pronouns = c['pronoun']
-#        insight = c['insight']
-#        number = c['number']
-#        quant = c['quant']
-#        shehe = c['shehe']
-#        i = c['i']
-#        print ('Progress: {}/{} rows processed'.format(i, len(description)))
-#        number_list.append(number)
-#        quant_list.append(quant)
-#        pronouns_list.append(pronouns)
-#        insight_list.append(insight)
-#        shehe_list.append(shehe)
-#        i_list.append(i)         
-#        c.clear()
-#        
-#    x8 = np.array(pronouns_list)
-#    x9 = np.array(insight_list)
-#    number = np.array(number_list)
-#    quant = np.array(quant_list)
-#    x10 = number + quant
-#    x11 = np.array(shehe_list)
-#    x12 = np.array(i_list)
-#    
-#    
-#    return x8, x9, x10, x11, x12
 
 def random_forest_classifier(cur, table):
     """

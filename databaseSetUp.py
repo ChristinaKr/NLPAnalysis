@@ -4,6 +4,7 @@
 Created on Wed Jun 13 12:00:37 2018
 
 @author: christinakronser
+Database to be found: https://drive.google.com/file/d/1KHmasvJFN4AWuflgicGeqvInMmNkKkio/view?usp=sharing
 """
 import csv, sqlite3
 import matplotlib.pyplot as plt

@@ -4,6 +4,8 @@
 Created on Mon Sep  3 09:03:47 2018
 
 @author: christinakronser
+
+Database to be found: https://drive.google.com/file/d/1KHmasvJFN4AWuflgicGeqvInMmNkKkio/view?usp=sharing
 """
 import numpy as np
 import sqlite3
